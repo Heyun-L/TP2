@@ -294,6 +294,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.9.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.0.0</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <failWhenNoMutations>false</failWhenNoMutations>
+                    <targetClasses>
+                        <param>com.graphhopper.util.Helper</param>
+                        <param>com.graphhopper.util.shapes.Circle</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.graphhopper.util.HelperTest</param>
+                        <param>com.graphhopper.util.shapes.CircleTest</param>
+                    </targetTests>
+                    <outputFormats>
+                        <outputFormat>XML</outputFormat>
+                        <outputFormat>HTML</outputFormat>
+                    </outputFormats>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
