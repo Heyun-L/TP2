@@ -308,11 +308,11 @@
                 <configuration>
                     <failWhenNoMutations>false</failWhenNoMutations>
                     <targetClasses>
-                        <param>com.graphhopper.util.Helper</param>
+                        <param>com.graphhopper.util.DistanceCalcEuclidean</param>
                         <param>com.graphhopper.util.shapes.Circle</param>
                     </targetClasses>
                     <targetTests>
-                        <param>com.graphhopper.util.HelperTest</param>
+                        <param>com.graphhopper.util.DistanceCalcEuclideanTest</param>
                         <param>com.graphhopper.util.shapes.CircleTest</param>
                     </targetTests>
                     <outputFormats>
