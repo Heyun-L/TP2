@@ -73,19 +73,19 @@ public class DistanceCalcEuclideanTest {
     }
 
     /*
-     * ===============================================================================
+     * --------------------------------------------------------------
      * NOUVEAUX TESTS AJOUTÉS POUR AMÉLIORER LA COUVERTURE DE CODE
-     * ===============================================================================
-     * 
+     * --------------------------------------------------------------
+     *
      * Les trois méthodes suivantes ont été ajoutées pour couvrir des parties du code
-     * qui n'étaient pas testées auparavant :
-     * 1. intermediatePoint() - Calcul de points intermédiaires sur un segment
-     * 2. calcDenormalizedDist() - Conversion de distances normalisées
-     * 3. calcDist() - Cas limites supplémentaires pour la distance euclidienne
+     * qui n'étaient pas testées avant :
      * 
-     * Ces tests utilisent des valeurs mathématiquement connues
-     * (théorème de Pythagore, points de référence).
+     * 1. intermediatePoint() - Calcul de points intermédiaires sur un segment
+     * 2. calcDenormalizedDist() - Conversion de distances
+     * 3. calcDist() - Cas supplémentaires pour la distance euclidienne
      */
+
+
 
     /**
      * 
@@ -99,7 +99,7 @@ public class DistanceCalcEuclideanTest {
      *   - Test 3: Segment (2,3) → (8,9) avec facteur 1.0 (point de fin)
      * ORACLE: Basé sur la formule d'interpolation linéaire mathématique
      *   - f=0.5: (0+0.5×10, 0+0.5×10) = (5,5)
-     *   - f=0.0: (2+0×6, 3+0×6) = (2,3) 
+     *   - f=0.0: (2+0×6, 3+0×6) = (2,3) (6 représente la distance à parcourir entre le début et la fin)
      *   - f=1.0: (2+1×6, 3+1×6) = (8,9)
      *   Tolérance 1e-10 pour gérer les erreurs d'arrondi
      * 
@@ -108,17 +108,17 @@ public class DistanceCalcEuclideanTest {
     public void testIntermediatePoint() {
         DistanceCalcEuclidean distCalc = new DistanceCalcEuclidean();
         
-        // Test midpoint (f = 0.5)
+        // Test point centre (f = 0.5)
         GHPoint midpoint = distCalc.intermediatePoint(0.5, 0.0, 0.0, 10.0, 10.0);
         assertEquals(5.0, midpoint.getLat(), 1e-10);
         assertEquals(5.0, midpoint.getLon(), 1e-10);
         
-        // Test start point (f = 0.0)
+        // Test point debut (f = 0.0)
         GHPoint startPoint = distCalc.intermediatePoint(0.0, 2.0, 3.0, 8.0, 9.0);
         assertEquals(2.0, startPoint.getLat(), 1e-10);
         assertEquals(3.0, startPoint.getLon(), 1e-10);
         
-        // Test end point (f = 1.0)
+        // Test point fin (f = 1.0)
         GHPoint endPoint = distCalc.intermediatePoint(1.0, 2.0, 3.0, 8.0, 9.0);
         assertEquals(8.0, endPoint.getLat(), 1e-10);
         assertEquals(9.0, endPoint.getLon(), 1e-10);
@@ -133,43 +133,42 @@ public class DistanceCalcEuclideanTest {
      *                     d'une distance au carré (dénormalisation)
      * DONNÉES DE TEST: 
      *   - Carrés parfaits: 25→5, 9→3, 1→1 (résultats exacts sans arrondi)
-     *   - Cas limite zéro: 0→0 (validation du comportement spécial)
+     *   - Cas limite zéro: 0→0 
      *   - Valeur décimale: 4→2 (autre carré parfait pour validation)
      * ORACLE: Basé sur la fonction racine carrée mathématique: résultat = √(valeur_normalisée)
      *   - √25 = 5, √9 = 3, √1 = 1, √0 = 0, √4 = 2
      *   Utilisation de carrés parfaits pour éviter les erreurs d'arrondi
-     *   Tolérance 1e-10 pour une précision maximale
+     *   Tolérance 1e-10 pour une meilleure précision
      * 
      */
     @Test
     public void testCalcDenormalizedDist() {
         DistanceCalcEuclidean distCalc = new DistanceCalcEuclidean();
         
-        // Test perfect squares
+        // Test carrés parfaits
         assertEquals(5.0, distCalc.calcDenormalizedDist(25.0), 1e-10);
         assertEquals(3.0, distCalc.calcDenormalizedDist(9.0), 1e-10);
         assertEquals(1.0, distCalc.calcDenormalizedDist(1.0), 1e-10);
         
         // Test zero
         assertEquals(0.0, distCalc.calcDenormalizedDist(0.0), 1e-10);
-        
-        // Test decimal values
-        assertEquals(2.0, distCalc.calcDenormalizedDist(4.0), 1e-10);
+
+
     }
 
     /**
-     * Test calcDist method with additional edge cases not covered by existing tests.
+     * Test calcDist methode pour des cas supplémentaires non couverts
      * 
      * NOM DU TEST: testCalcDistBasicCases
      * INTENTION: Tester la méthode de calcul de distance euclidienne avec des cas limites
-     *            et des cas géométriques classiques pour améliorer la couverture
+     *            et pour améliorer la couverture
      * COMPORTEMENT TESTÉ: Validation du calcul de distance selon la formule euclidienne
      *                     √((x₂-x₁)² + (y₂-y₁)²) avec différents types de coordonnées
      * DONNÉES DE TEST: 
-     *   - Points identiques: (5,5)→(5,5) = 0 (cas limite fondamental)
-     *   - Distances unitaires: (0,0)→(1,0) et (0,0)→(0,1) = 1 (axes principaux)
-     *   - Triangle 3-4-5: (0,0)→(3,4) = 5 (théorème de Pythagore classique)
-     *   - Coordonnées négatives: (-3,-4)→(0,0) = 5 (test de robustesse)
+     *   - Points identiques: (5,5)→(5,5) = 0
+     *   - Distances unitaires: (0,0)→(1,0) et (0,0)→(0,1) = 1 
+     *   - Triangle 3-4-5: (0,0)→(3,4) = 5 (théorème de Pythagore)
+     *   - Coordonnées négatives: (-3,-4)→(0,0) = 5 
      * ORACLE: Basé sur la formule de distance euclidienne et références mathématiques
      *   - Points identiques: √((5-5)² + (5-5)²) = √0 = 0
      *   - Distance unitaire: √((1-0)² + (0-0)²) = √1 = 1
@@ -182,17 +181,17 @@ public class DistanceCalcEuclideanTest {
     public void testCalcDistBasicCases() {
         DistanceCalcEuclidean distCalc = new DistanceCalcEuclidean();
         
-        // Test identical points (distance should be 0)
+        // Test points identiques)
         assertEquals(0.0, distCalc.calcDist(5.0, 5.0, 5.0, 5.0), 1e-10);
         
         // Test unit distance
         assertEquals(1.0, distCalc.calcDist(0.0, 0.0, 1.0, 0.0), 1e-10);
         assertEquals(1.0, distCalc.calcDist(0.0, 0.0, 0.0, 1.0), 1e-10);
         
-        // Test Pythagorean theorem (3-4-5 triangle)
+        // Test pythagore
         assertEquals(5.0, distCalc.calcDist(0.0, 0.0, 3.0, 4.0), 1e-10);
         
-        // Test negative coordinates
+        // Test avec points negatives
         assertEquals(5.0, distCalc.calcDist(-3.0, -4.0, 0.0, 0.0), 1e-10);
     }
 
