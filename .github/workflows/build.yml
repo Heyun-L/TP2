@@ -44,9 +44,9 @@ jobs:
       - name: Rickroll on test failure
         if: failure()
         run: |
-          echo "Tests failed! Here's something to cheer you up:"
+          echo "Tests failed! Click on this link to fix the problem"
           echo "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-          echo "Never Gonna Give You Up! 🎤"
+          "
       
   mutation-testing:
     runs-on: ubuntu-latest
