@@ -115,21 +115,26 @@ jobs:
           
       - name: Extract current mutation score
         id: current_score
+        shell: bash
         run: |
           echo "=== Extracting mutation score ==="
           REPORT_DIR=$(ls core/target/pit-reports/ | head -1)
           MUTATIONS_XML="core/target/pit-reports/$REPORT_DIR/mutations.xml"
           echo "Found mutations.xml at: $MUTATIONS_XML"
           
-          # Extraire le score directement (sans script externe)
-          TOTAL_MUTATIONS=$(grep -c "<mutation " "$MUTATIONS_XML")
-          KILLED_MUTATIONS=$(grep -c 'status="KILLED"' "$MUTATIONS_XML")
-          MUTATION_SCORE=$(awk "BEGIN {printf \"%.2f\", $KILLED_MUTATIONS * 100 / $TOTAL_MUTATIONS}")
+          # Utiliser Python pour parser le XML de manière fiable
+          MUTATION_SCORE=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('$MUTATIONS_XML')
+          root = tree.getroot()
+          mutations = root.findall('mutation')
+          total = len(mutations)
+          killed = sum(1 for m in mutations if m.get('status') == 'KILLED')
+          score = (killed * 100.0 / total) if total > 0 else 0
+          print(f'{score:.2f}')
+          ")
           
-          echo "Total mutations: $TOTAL_MUTATIONS"
-          echo "Killed mutations: $KILLED_MUTATIONS"
           echo "Mutation score: $MUTATION_SCORE%"
-          
           echo "current_score=$MUTATION_SCORE" >> $GITHUB_OUTPUT
           echo "mutations_xml=$MUTATIONS_XML" >> $GITHUB_OUTPUT
       - name: Get baseline mutation score from main branch
