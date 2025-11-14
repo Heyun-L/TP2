@@ -69,8 +69,8 @@ jobs:
       - name: Run PITest mutation testing
         run: |
           echo "🧬 Running mutation testing on target classes..."
-          cd core
-          mvn -B clean compile test org.pitest:pitest-maven:mutationCoverage
+          mvn -B clean compile -DskipTests
+          mvn -B org.pitest:pitest-maven:mutationCoverage -pl core
       - name: Extract current mutation score
         id: current_score
         run: |
