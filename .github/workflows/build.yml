@@ -117,30 +117,21 @@ jobs:
         id: current_score
         run: |
           echo "=== Extracting mutation score ==="
-          if [ -d "core/target/pit-reports" ]; then
-            REPORT_DIR=$(ls core/target/pit-reports/ | head -1)
-            echo "Found report directory: $REPORT_DIR"
-            MUTATIONS_XML="core/target/pit-reports/$REPORT_DIR/mutations.xml"
-            echo "Looking for: $MUTATIONS_XML"
-            
-            if [ -f "$MUTATIONS_XML" ]; then
-              CURRENT_SCORE=$(.github/scripts/extract_mutation_score.sh "$MUTATIONS_XML")
-              echo "current_score=$CURRENT_SCORE" >> $GITHUB_OUTPUT
-              echo "mutations_xml=$MUTATIONS_XML" >> $GITHUB_OUTPUT
-              echo "Current mutation score: $CURRENT_SCORE%"
-            else
-              echo "::error::Mutations XML file not found at: $MUTATIONS_XML"
-              echo "Contents of report directory:"
-              ls -la "core/target/pit-reports/$REPORT_DIR/" || echo "Directory does not exist"
-              echo "All files in pit-reports:"
-              find core/target/pit-reports/ -type f || echo "No files found"
-              echo "PITest may have failed to generate XML - checking PITest logs..."
-              exit 1
-            fi
-          else
-            echo "::error::No pit-reports directory found"
-            exit 1
-          fi
+          REPORT_DIR=$(ls core/target/pit-reports/ | head -1)
+          MUTATIONS_XML="core/target/pit-reports/$REPORT_DIR/mutations.xml"
+          echo "Found mutations.xml at: $MUTATIONS_XML"
+          
+          # Extraire le score directement (sans script externe)
+          TOTAL_MUTATIONS=$(grep -c "<mutation " "$MUTATIONS_XML")
+          KILLED_MUTATIONS=$(grep -c 'status="KILLED"' "$MUTATIONS_XML")
+          MUTATION_SCORE=$(awk "BEGIN {printf \"%.2f\", $KILLED_MUTATIONS * 100 / $TOTAL_MUTATIONS}")
+          
+          echo "Total mutations: $TOTAL_MUTATIONS"
+          echo "Killed mutations: $KILLED_MUTATIONS"
+          echo "Mutation score: $MUTATION_SCORE%"
+          
+          echo "current_score=$MUTATION_SCORE" >> $GITHUB_OUTPUT
+          echo "mutations_xml=$MUTATIONS_XML" >> $GITHUB_OUTPUT
       - name: Get baseline mutation score from main branch
         id: baseline_score
         run: |
