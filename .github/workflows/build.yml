@@ -63,10 +63,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Make scripts executable
-        run: |
-          chmod +x .github/scripts/extract_mutation_score.sh
-          chmod +x .github/scripts/compare_mutation_scores.sh
       - name: Run PITest mutation testing
         run: |
           echo "🧬 Running mutation testing on target classes..."
@@ -157,7 +153,24 @@ jobs:
         run: |
           BASELINE="${{ steps.baseline_score.outputs.baseline_score }}"
           CURRENT="${{ steps.current_score.outputs.current_score }}"
-          .github/scripts/compare_mutation_scores.sh "$BASELINE" "$CURRENT"
+          
+          echo "🔍 Mutation Testing Analysis"
+          echo "=========================="
+          echo "Baseline score: $BASELINE%"
+          echo "Current score:  $CURRENT%"
+          
+          # Comparer les scores
+          DIFF=$(awk "BEGIN {printf \"%.2f\", $CURRENT - $BASELINE}")
+          
+          if (( $(awk "BEGIN {print ($CURRENT < $BASELINE)}") )); then
+            echo "❌ FAILURE: Mutation score has decreased by ${DIFF#-} percentage points"
+            echo "::error::Mutation score regression detected: $CURRENT% < $BASELINE%"
+            exit 1
+          elif (( $(awk "BEGIN {print ($CURRENT > $BASELINE)}") )); then
+            echo "✅ SUCCESS: Mutation score has improved by $DIFF percentage points"
+          else
+            echo "✅ SUCCESS: Mutation score maintained at $BASELINE%"
+          fi
       - name: Update baseline if on main branch
         if: github.ref == 'refs/heads/main' && steps.current_score.outputs.current_score != ''
         run: |
