@@ -76,10 +76,25 @@ jobs:
           echo "=== Compiling test classes ==="
           cd core
           mvn -B test-compile
+          
+          # Vérifier que les classes cibles existent
+          echo "=== Verifying target classes exist ==="
+          ls -la target/classes/com/graphhopper/util/DistanceCalcEuclidean.class || echo "❌ DistanceCalcEuclidean not found"
+          ls -la target/classes/com/graphhopper/util/shapes/Circle.class || echo "❌ Circle not found"
+          ls -la target/test-classes/com/graphhopper/util/DistanceCalcEuclideanTest.class || echo "❌ DistanceCalcEuclideanTest not found"
+          ls -la target/test-classes/com/graphhopper/util/shapes/CircleTest.class || echo "❌ CircleTest not found"
+          
           # Lancer PITest directement dans le module core
           echo "=== Starting PITest ==="
-          mvn -B org.pitest:pitest-maven:mutationCoverage -DtimeoutFactor=2
-          echo "=== PITest completed with exit code: $? ==="
+          mvn -B org.pitest:pitest-maven:mutationCoverage -DtimeoutFactor=2 2>&1 | tee pitest-output.log
+          PITEST_EXIT_CODE=${PIPESTATUS[0]}
+          echo "=== PITest completed with exit code: $PITEST_EXIT_CODE ==="
+          
+          # Afficher les dernières lignes pour debug
+          echo "=== Last 50 lines of PITest output ==="
+          tail -50 pitest-output.log
+          
+          exit $PITEST_EXIT_CODE
       - name: Debug PITest output structure
         run: |
           echo "=== Checking PITest report generation ==="
@@ -89,11 +104,14 @@ jobs:
           echo "Checking if pit-reports exists:"
           ls -la core/target/pit-reports/ || echo "❌ No pit-reports directory"
           
+          echo "Contents of EACH report directory:"
+          for dir in core/target/pit-reports/*/; do
+            echo "=== Directory: $dir ==="
+            ls -laR "$dir" || echo "Cannot list $dir"
+          done
+          
           echo "Looking for any XML files in target:"
           find core/target -name "*.xml" -type f || echo "❌ No XML files found"
-          
-          echo "Looking for any pit-related files:"
-          find . -path "*/pit-reports*" -type f || echo "❌ No pit-report files found"
           
       - name: Extract current mutation score
         id: current_score
