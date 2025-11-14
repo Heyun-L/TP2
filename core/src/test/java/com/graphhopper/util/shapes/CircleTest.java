@@ -28,9 +28,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;per GmbH under on
  */
 package com.graphhopper.util.shapes;
 
+import com.graphhopper.util.DistanceCalc;
 import com.graphhopper.util.DistanceCalcEarth;
 import com.graphhopper.util.PointList;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import net.datafaker.Faker;
 import java.util.Random;
 
@@ -39,6 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+
+@ExtendWith(MockitoExtension.class)
 
 /**
  * @author Peter Karich
@@ -103,36 +111,27 @@ public class CircleTest {
 
 
      /*
-     * --------------------------------------------------------------
-     * NOUVEAUX TESTS AJOUTÉS POUR AMÉLIORER LA COUVERTURE DE CODE
-     * --------------------------------------------------------------
+     * Nouveaux tests pour améliorer la couverture de code
      * 
-     * Les tests suivants ont été ajoutés pour couvrir les méthodes non testées 
-     * de la classe Circle et améliorer la qualité du test :
-     * 
-     * 1. testGetLatLon() - Test des getters pour latitude et longitude
-     * 2. testGetBounds() - Test de calcul des limites géographiques
-     * 3. testEqualsAndHashCode() - Test complet du contrat equals/hashCode
-     * 4. testToString() - Test de la représentation textuelle
-     * 5. testContainsWithFaker() - Test avec java faker
+     * J'ai ajouté ces tests pour couvrir les méthodes qui n'étaient pas testées :
+     * - testGetLatLon() : vérifie que les getters retournent bien les bonnes coordonnées
+     * - testGetBounds() : teste le calcul des limites géographiques
+     * - testEqualsAndHashCode() : vérifie le contrat equals/hashCode
+     * - testToString() : teste la représentation textuelle du cercle
      */
 
 
 
     /**
-     * Test getLat() et getLon() getter methods.
+     * Test des getters getLat() et getLon().
      * 
-     * NOM DU TEST: testGetLatLon
-     * INTENTION: Tester les méthodes d'accès aux coordonnées du centre du cercle
-     * COMPORTEMENT TESTÉ: Vérification que getLat() et getLon() retournent exactement
-     *                     les valeurs passées au constructeur
-     * DONNÉES DE TEST: Coordonnées de France (48.858844, 2.294351) - valeurs réelles
-     *                  et facilement vérifiables
-     * ORACLE: Par définition, un getter doit retourner la valeur stockée sans modification.
-     * On vérifie en comparant directement avec les valeurs passées au constructeur
-     * (48.858844, 2.294351). Tolérance de 0.000001 pour gérer les imprécisions
-     * de calcul des nombres flottants (double precision).
+     * Ce test vérifie simplement que les getters retournent bien les coordonnées
+     * qu'on a passées au constructeur. J'utilise les coordonnées de la Tour Eiffel
+     * à Paris (48.858844, 2.294351) comme exemple.
      * 
+     * Un getter devrait juste retourner la valeur stockée, donc on compare directement
+     * avec ce qu'on a mis dans le constructeur. J'ai mis une petite tolérance de 0.000001
+     * au cas où il y aurait des problèmes d'arrondi avec les doubles.
      */
     @Test
     public void testGetLatLon() {
@@ -149,19 +148,14 @@ public class CircleTest {
     }
 
     /**
-     * Test getBounds() methode pour les limites géographiques du cercle.
+     * Test de la méthode getBounds() qui calcule les limites géographiques.
      * 
-     * NOM DU TEST: testGetBounds
-     * INTENTION: Tester la méthode de calcul des limites géographiques du cercle
-     *            S'assurer que getBounds() fonctionne correctement
-     * COMPORTEMENT TESTÉ: Vérification que getBounds() retourne une BBox valide
-     *                     qui contient le centre du cercle
-     * DONNÉES DE TEST: Cercle centré en (50.0, 10.0) avec rayon 1000m - 
-     * ORACLE: Par définition , une boîte englobante d'un cercle 
-     * doit toujours contenir son centre. On vérifie manuellement que
-     * le point (50.0, 10.0) est dans les limites retournées. 
-     * 1. getBounds() ne doit jamais retourner null
-     * 2. La BBox résultante doit contenir le centre du cercle
+     * Je teste qu'un cercle centré en (50.0, 10.0) avec un rayon de 1000m
+     * retourne bien une boîte englobante (BBox) valide.
+     * 
+     * C'est logique : une boîte qui entoure un cercle doit au moins contenir
+     * le centre du cercle. Donc je vérifie que la BBox n'est pas null et qu'elle
+     * contient bien le point central.
      */
     @Test
     public void testGetBounds() {
@@ -174,25 +168,18 @@ public class CircleTest {
     }
 
     /**
-     * Test equals() and hashCode() methods pour la comparaison d'objets.
+     * Test du contrat equals() et hashCode().
      * 
-     * NOM DU TEST: testEqualsAndHashCode
-     * INTENTION: Vérifier que deux cercles identiques sont considérés égaux
-     * COMPORTEMENT TESTÉ: 
-     *   -  Obj.equals(obj) doit être true
-     *   -  Obj1.equals(obj2) ⟺ obj2.equals(obj1)
-     *   -  Obj.equals(null) doit être false
-     *   -  Objets différents doivent être inégaux
-     *   -  Objets égaux devraient avoir le même hashCode
-     * DONNÉES DE TEST: 
-     *   - circle1/circle2: identiques (50.0, 10.0, 1000.0) pour tester l'égalité
-     *   - circle3/4/5: diffèrent par une seule propriété pour tester chaque branche
-     * ORACLE: Basé sur le contrat equals/hashCode de Java Object
-     *         Chaque propriété (lat, lon, radius) doit être comparée
-     *         - Si obj1.equals(obj2) alors hashCode identiques
-     *         - On vérifie en créant 2 cercles identiques et en comparant
-     *         - On teste chaque propriété individuellement pour s'assurer
-     *          qu'une différence rend les objets inégaux
+     * Je vérifie que deux cercles avec les mêmes coordonnées et le même rayon
+     * sont bien considérés comme égaux. Je teste aussi quelques règles de base :
+     * - Un cercle est égal à lui-même
+     * - Un cercle n'est pas égal à null
+     * - Deux cercles identiques ont le même hashCode
+     * - Si on change la latitude, longitude ou rayon, les cercles deviennent différents
+     * 
+     * J'utilise circle1 et circle2 identiques pour l'égalité, puis circle3/4/5
+     * qui changent juste une propriété à la fois pour vérifier que ça détecte bien
+     * les différences.
      */
     @Test
     public void testEqualsAndHashCode() {
@@ -230,18 +217,13 @@ public class CircleTest {
     }
 
     /**
-     * Test toString() pour la representation du String du cercle.
-     * NOM DU TEST: testToString
-     * INTENTION: Tester la méthode de représentation par chaîne du cercle
-     * COMPORTEMENT TESTÉ: Vérification que toString() produit une chaîne valide
-     *                     contenant toutes les informations du cercle
-     * DONNÉES DE TEST: Coordonnées (48.858844, 2.294351) (Vive la France) avec un rayon 1500m
-     *                  - valeurs réelles 
-     * ORACLE:  la méthode doit retourner une représentation textuelle de l'objet
-     *         1. toString() ne doit jamais retourner null
-     *         2. La chaîne ne doit pas être vide
-     *         3. Doit contenir la latitude, longitude et rayon
+     * Test de la méthode toString().
      * 
+     * Je vérifie que toString() retourne quelque chose de valide avec les infos du cercle.
+     * J'utilise encore les coordonnées de Paris (48.858844, 2.294351) avec un rayon de 1500m.
+     * 
+     * Basiquement, toString() devrait pas retourner null ni une chaîne vide, et elle
+     * devrait contenir au moins la latitude, la longitude et le rayon quelque part dedans.
      */
     @Test
     public void testToString() {
@@ -258,53 +240,193 @@ public class CircleTest {
     }
 
 
+    /*
+     * Tests avec Mockito
+     * 
+     * J'utilise Mockito pour simuler des dépendances et tester Circle de manière isolée.
+     * 
+     * Pourquoi j'ai mocké DistanceCalc (3 tests) :
+     * - C'est la dépendance principale de Circle, elle fait tous les calculs géographiques
+     * - Les calculs de distance terrestre sont complexes (formule haversine, etc.)
+     * - En mockant, je peux isoler la logique de Circle sans me soucier des maths
+     * - Je peux tester des cas précis comme une distance exactement égale au rayon
+     * - Je vérifie que Circle appelle bien les bonnes méthodes de DistanceCalc
+     * 
+     * Pourquoi j'ai mocké PointList (1 test) :
+     * - Elle est utilisée par intersects() pour représenter des lignes géographiques
+     * - En mockant, je contrôle exactement combien de points il y a et leurs coordonnées
+     * - Je peux tester le cas spécial "1 seul point" facilement
+     * - Je vérifie que Circle utilise correctement size(), getLat() et getLon()
+     * 
+     * Résumé des 4 tests :
+     * - testContainsWithMockedDistanceCalc : point dans le cercle
+     * - testIntersectsWithMockedDistanceCalc : ligne qui croise le cercle
+     * - testContainsPointOutsideWithMock : point hors du cercle
+     * - testIntersectsWithMockedPointList : test avec PointList mockée
+     */
 
-
-/**
- * Test avec la libraire JavaFaker 
- * 
- * NOM DU TEST: testContainsWithFaker
- * INTENTION: Tester le comportement du cercle avec des données variées 
- *            générées automatiquement
- *            Si on test un point suffisament loin, il ne doit pas etre contenu
- * COMPORTEMENT TESTÉ: 
- *   - un cercle contient toujours son centre
- *   - points très éloignés ne sont pas contenus dans le Bbox
- *   - getBounds() fonctionne avec toutes les données, et ne devrait pas retourner 0
- * DONNÉES DE TEST: 
- *   - Latitude/Longitude choisi via Faker pour que ce soit réaliste
- *   - Rayon: entre 1000-10000m 
- *   - 10 itérations pour couvrir différents cas de type cercle
- * ORACLE: 
- *   1. circle.contains(centre) = true 
- *   2. circle.contains(centre + 10°) = false
- *   3. getBounds() nest pas egal à null
- * 
- */
-@Test
-public void testContainsWithFaker() {
-    Faker faker = new Faker(new Random(50));
-    
-    for (int i = 0; i < 10; i++) { //Creation de 10 cercles avec donne faker
-        double lat = Double.parseDouble(faker.address().latitude());
-        double lon = Double.parseDouble(faker.address().longitude());
-        double radius = faker.number().randomDouble(2, 1000, 10000);
+    /**
+     * Test de contains() avec un DistanceCalc mocké.
+     * 
+     * Je veux tester que contains() marche bien sans dépendre des vrais calculs
+     * géographiques. Je mocke DistanceCalc pour contrôler exactement les distances.
+     * 
+     * Scénario : cercle centré en (50.0, 10.0) avec rayon 1000m, je teste si le
+     * point (50.1, 10.1) est dedans. Je configure le mock pour dire que la distance
+     * du rayon vaut 1.0 et la distance au point vaut 0.5.
+     * 
+     * Comme 0.5 < 1.0, le point devrait être contenu dans le cercle.
+     * Je vérifie aussi que Circle appelle bien calcNormalizedDist() 2 fois :
+     * une fois pour le rayon et une fois pour le point.
+     */
+    @Test
+    public void testContainsWithMockedDistanceCalc(@Mock DistanceCalc mockCalc) {
+        // Configuration du mock
+        // Quand on calcule la distance normalisée du rayon (1000m) → retourne 1.0
+        when(mockCalc.calcNormalizedDist(1000.0)).thenReturn(1.0);
         
-        Circle circle = new Circle(lat, lon, radius);
+        // Quand on calcule la distance normalisée entre centre et point testé → retourne 0.5
+        when(mockCalc.calcNormalizedDist(50.0, 10.0, 50.1, 10.1)).thenReturn(0.5);
         
-        // Test 1: Le centre est toujours contenu
-        assertTrue(circle.contains(lat, lon), 
-            "Circle must be its center");
+        // Quand on crée la BBox → retourne un BBox valide
+        when(mockCalc.createBBox(50.0, 10.0, 1000.0))
+            .thenReturn(new BBox(9.9, 10.1, 49.9, 50.1));
         
-        // Test 2: Un point très éloigné n'est pas contenu. 
-        assertFalse(circle.contains(lat + 10.0, lon + 10.0), 
-            "Point 10 degrees away should not be contained");
+        // Création du cercle avec le DistanceCalc mocké
+        Circle circle = new Circle(50.0, 10.0, 1000.0, mockCalc);
         
-        // Test 3: getBounds ne retourne pas null
-        assertNotNull(circle.getBounds(), 
-            "getBounds should not return null");
+        // Test: le point devrait être contenu car 0.5 < 1.0
+        assertTrue(circle.contains(50.1, 10.1),
+            "Point should be contained when normalized distance (0.5) < radius (1.0)");
+        
+        // Vérifications des appels au mock
+        verify(mockCalc, times(1)).calcNormalizedDist(1000.0); // Pour le rayon
+        verify(mockCalc, times(1)).calcNormalizedDist(50.0, 10.0, 50.1, 10.1); // Pour le point
+        verify(mockCalc, times(1)).createBBox(50.0, 10.0, 1000.0); // Pour la BBox
+        
+        // Vérifier qu'aucune autre méthode n'a été appelée
+        verifyNoMoreInteractions(mockCalc);
     }
 
-}
-  
+    /**
+     * Test de intersects() avec DistanceCalc mocké.
+     * 
+     * Je teste si Circle détecte bien qu'une ligne (PointList) croise le cercle.
+     * 
+     * Mon scénario : cercle en (45.0, 5.0) avec rayon 2000m, et une ligne qui va
+     * de (44.9, 4.9) à (45.1, 5.1). Je configure le mock pour que le premier point
+     * soit hors du cercle (distance 2.5) et le deuxième point soit dedans (distance 0.3).
+     * 
+     * Comme au moins un point est dans le cercle, intersects() devrait retourner true.
+     * Je vérifie aussi que Circle parcourt bien tous les points en appelant
+     * calcNormalizedDist() pour chacun.
+     */
+    @Test
+    public void testIntersectsWithMockedDistanceCalc(@Mock DistanceCalc mockCalc) {
+        // Configuration du mock
+        when(mockCalc.calcNormalizedDist(2000.0)).thenReturn(1.0); // Rayon normalisé
+        when(mockCalc.createBBox(45.0, 5.0, 2000.0))
+            .thenReturn(new BBox(4.9, 5.1, 44.9, 45.1));
+        
+        // validEdgeDistance pour vérifier si on doit calculer la distance au segment
+        when(mockCalc.validEdgeDistance(anyDouble(), anyDouble(), anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+            .thenReturn(false);
+        
+        // Premier point de la ligne: HORS du cercle
+        when(mockCalc.calcNormalizedDist(45.0, 5.0, 44.9, 4.9)).thenReturn(2.5);
+        
+        // Second point de la ligne: DANS le cercle
+        when(mockCalc.calcNormalizedDist(45.0, 5.0, 45.1, 5.1)).thenReturn(0.3);
+        
+        Circle circle = new Circle(45.0, 5.0, 2000.0, mockCalc);
+        
+        // Créer une PointList avec 2 points
+        PointList pointList = new PointList();
+        pointList.add(44.9, 4.9); // Point 1: hors cercle
+        pointList.add(45.1, 5.1); // Point 2: dans cercle
+        
+        // Test: doit détecter l'intersection car le 2ème point est dans le cercle
+        assertTrue(circle.intersects(pointList),
+            "Circle should intersect with line when at least one point is inside");
+        
+        // Vérifications des appels essentiels
+        verify(mockCalc).calcNormalizedDist(2000.0); // Rayon
+        verify(mockCalc).createBBox(45.0, 5.0, 2000.0); // BBox
+        verify(mockCalc, atLeastOnce()).calcNormalizedDist(anyDouble(), anyDouble(), anyDouble(), anyDouble());
+    }
+
+    /**
+     * Test de contains() avec un point hors du cercle.
+     * 
+     * C'est le cas inverse du test précédent : je vérifie que contains() retourne
+     * bien false quand le point est trop loin.
+     * 
+     * Cercle à Paris (48.8566, 2.3522) avec un petit rayon de 500m. Le point testé
+     * est à (48.8700, 2.3700), à environ 2km. Je configure le mock pour retourner
+     * une distance de 2.0, ce qui est plus grand que le rayon (1.0).
+     * 
+     * Donc 2.0 > 1.0, le point ne devrait pas être contenu. Je vérifie aussi que
+     * Circle fait bien les appels nécessaires au mock.
+     */
+    @Test
+    public void testContainsPointOutsideWithMock(@Mock DistanceCalc mockCalc) {
+        // Configuration du mock pour un point HORS du cercle
+        when(mockCalc.calcNormalizedDist(500.0)).thenReturn(1.0); // Rayon normalisé
+        when(mockCalc.calcNormalizedDist(48.8566, 2.3522, 48.8700, 2.3700))
+            .thenReturn(2.0); // Distance normalisée > rayon
+        when(mockCalc.createBBox(48.8566, 2.3522, 500.0))
+            .thenReturn(new BBox(2.3, 2.4, 48.8, 48.9));
+        
+        Circle circle = new Circle(48.8566, 2.3522, 500.0, mockCalc);
+        
+        // Test: le point ne devrait PAS être contenu car 2.0 > 1.0
+        assertFalse(circle.contains(48.8700, 2.3700),
+            "Point should NOT be contained when normalized distance (2.0) > radius (1.0)");
+        
+        // Vérifications
+        verify(mockCalc).calcNormalizedDist(500.0);
+        verify(mockCalc).calcNormalizedDist(48.8566, 2.3522, 48.8700, 2.3700);
+        verify(mockCalc).createBBox(48.8566, 2.3522, 500.0);
+        verifyNoMoreInteractions(mockCalc);
+    }
+
+    /**
+     * Test de intersects() avec une PointList mockée.
+     * 
+     * Ici je mocke PointList au lieu de DistanceCalc pour tester un cas différent.
+     * Je veux vérifier que Circle gère bien le cas spécial d'une PointList avec
+     * un seul point.
+     * 
+     * Je configure le mock pour dire qu'il y a 1 point à (50.05, 10.05), et mon
+     * cercle est centré en (50.0, 10.0) avec un gros rayon de 100km. Le point mocké
+     * est clairement dans le cercle (à environ 7km du centre), donc intersects()
+     * devrait retourner true.
+     * 
+     * Je vérifie aussi que Circle appelle bien size() pour savoir combien de points
+     * il y a, puis getLat(0) et getLon(0) pour récupérer les coordonnées du point.
+     */
+    @Test
+    public void testIntersectsWithMockedPointList(@Mock PointList mockPointList) {
+        // Configuration du mock PointList - 1 seul point proche du centre
+        when(mockPointList.size()).thenReturn(1); // 1 point unique
+        when(mockPointList.getLat(0)).thenReturn(50.05); // ~5km au nord
+        when(mockPointList.getLon(0)).thenReturn(10.05); // ~3.5km à l'est
+        
+        // Création d'un cercle avec rayon large (100km)
+        Circle circle = new Circle(50.0, 10.0, 100000.0);
+        
+        // Test: le point mocké est proche du centre → intersects() devrait être TRUE
+        boolean result = circle.intersects(mockPointList);
+        assertTrue(result, 
+            "PointList with 1 point (50.05, 10.05) should intersect circle at (50.0, 10.0) with 100km radius");
+        
+        // Vérifications: Circle doit interroger la PointList
+        verify(mockPointList, times(1)).size(); // Appelé une fois pour connaître le nombre de points
+        verify(mockPointList, times(1)).getLat(0); // Récupérer latitude du point 0
+        verify(mockPointList, times(1)).getLon(0); // Récupérer longitude du point 0
+        
+        // Pas d'autres appels attendus car 1 seul point
+        verifyNoMoreInteractions(mockPointList);
+    }
+
 }
