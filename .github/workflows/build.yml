@@ -74,9 +74,8 @@ jobs:
           mvn -B clean install -DskipTests
           # Puis lancer PITest sur tout le projet (il se concentrera sur nos 2 classes)
           echo "=== Starting PITest ==="
-          # Test PITest seulement sur le module core où se trouvent nos classes
-          cd core
-          mvn -B org.pitest:pitest-maven:mutationCoverage -Dverbose=true -DtimeoutFactor=2
+          # Exécuter depuis la racine avec l'option -pl pour cibler le module core
+          mvn -B org.pitest:pitest-maven:mutationCoverage -pl core -Dverbose=true -DtimeoutFactor=2
           echo "=== PITest completed with exit code: $? ==="
       - name: Debug PITest output structure
         run: |
