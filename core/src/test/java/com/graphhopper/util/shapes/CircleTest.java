@@ -266,7 +266,7 @@ public class CircleTest {
      */
 
     /**
-     * Test de contains() avec un DistanceCalc mocké.
+     * Test de contains() avec un DistanceCalc mocké
      * 
      * Je veux tester que contains() marche bien sans dépendre des vrais calculs
      * géographiques. Je mocke DistanceCalc pour contrôler exactement les distances.
