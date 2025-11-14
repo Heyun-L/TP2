@@ -200,7 +200,7 @@ public class CircleTest {
         
         // Test inegalite - chaque propriete differente 
         assertFalse(circle1.equals(circle3), "Different latitude should not be equal");
-        // assertFalse(circle1.equals(circle4), "Different longitude should not be equal");
+        assertFalse(circle1.equals(circle4), "Different longitude should not be equal");
         assertFalse(circle1.equals(circle5), "Different radius should not be equal");
         
         // Test hashCode, object egale ont le meme hashCode

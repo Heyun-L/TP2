@@ -65,55 +65,55 @@ jobs:
             ${{ runner.os }}-maven-
       - name: Run PITest mutation testing
         run: |
-          echo "🧬 Running mutation testing on target classes..."
+          echo "Running mutation testing on target classes"
           # Installer tous les modules dans le repository local pour résoudre les dépendances
           mvn -B clean install -DskipTests
-          # Compiler les classes de test du module core (nécessaire pour PITest)
-          echo "=== Compiling test classes ==="
+          # Compiler les classes de test du module core
+          echo "Compiling test classes"
           cd core
           mvn -B test-compile
           
           # Vérifier que les classes cibles existent
-          echo "=== Verifying target classes exist ==="
-          ls -la target/classes/com/graphhopper/util/DistanceCalcEuclidean.class || echo "❌ DistanceCalcEuclidean not found"
-          ls -la target/classes/com/graphhopper/util/shapes/Circle.class || echo "❌ Circle not found"
-          ls -la target/test-classes/com/graphhopper/util/DistanceCalcEuclideanTest.class || echo "❌ DistanceCalcEuclideanTest not found"
-          ls -la target/test-classes/com/graphhopper/util/shapes/CircleTest.class || echo "❌ CircleTest not found"
+          echo "Verifying target classes exist"
+          ls -la target/classes/com/graphhopper/util/DistanceCalcEuclidean.class || echo "DistanceCalcEuclidean not found"
+          ls -la target/classes/com/graphhopper/util/shapes/Circle.class || echo "Circle not found"
+          ls -la target/test-classes/com/graphhopper/util/DistanceCalcEuclideanTest.class || echo "DistanceCalcEuclideanTest not found"
+          ls -la target/test-classes/com/graphhopper/util/shapes/CircleTest.class || echo "CircleTest not found"
           
           # Lancer PITest directement dans le module core
-          echo "=== Starting PITest ==="
+          echo "Starting PITest"
           mvn -B org.pitest:pitest-maven:mutationCoverage -DtimeoutFactor=2 2>&1 | tee pitest-output.log
           PITEST_EXIT_CODE=${PIPESTATUS[0]}
-          echo "=== PITest completed with exit code: $PITEST_EXIT_CODE ==="
+          echo "PITest completed with exit code: $PITEST_EXIT_CODE"
           
           # Afficher les dernières lignes pour debug
-          echo "=== Last 50 lines of PITest output ==="
+          echo "Last 50 lines of PITest output"
           tail -50 pitest-output.log
           
           exit $PITEST_EXIT_CODE
       - name: Debug PITest output structure
         run: |
-          echo "=== Checking PITest report generation ==="
+          echo "Checking PITest report generation"
           echo "Checking if core/target exists:"
-          ls -la core/target/ || echo "❌ No core/target directory"
+          ls -la core/target/ || echo "No core/target directory"
           
           echo "Checking if pit-reports exists:"
-          ls -la core/target/pit-reports/ || echo "❌ No pit-reports directory"
+          ls -la core/target/pit-reports/ || echo "No pit-reports directory"
           
           echo "Contents of EACH report directory:"
           for dir in core/target/pit-reports/*/; do
-            echo "=== Directory: $dir ==="
+            echo "Directory: $dir"
             ls -laR "$dir" || echo "Cannot list $dir"
           done
           
           echo "Looking for any XML files in target:"
-          find core/target -name "*.xml" -type f || echo "❌ No XML files found"
+          find core/target -name "*.xml" -type f || echo "No XML files found"
           
       - name: Extract current mutation score
         id: current_score
         shell: bash
         run: |
-          echo "=== Extracting mutation score ==="
+          echo "Extracting mutation score"
           REPORT_DIR=$(ls core/target/pit-reports/ | head -1)
           MUTATIONS_XML="core/target/pit-reports/$REPORT_DIR/mutations.xml"
           echo "Found mutations.xml at: $MUTATIONS_XML"
@@ -154,8 +154,7 @@ jobs:
           BASELINE="${{ steps.baseline_score.outputs.baseline_score }}"
           CURRENT="${{ steps.current_score.outputs.current_score }}"
           
-          echo "🔍 Mutation Testing Analysis"
-          echo "=========================="
+          echo "Mutation Testing Analysis"
           echo "Baseline score: $BASELINE%"
           echo "Current score:  $CURRENT%"
           
@@ -163,13 +162,13 @@ jobs:
           DIFF=$(awk "BEGIN {printf \"%.2f\", $CURRENT - $BASELINE}")
           
           if (( $(awk "BEGIN {print ($CURRENT < $BASELINE)}") )); then
-            echo "❌ FAILURE: Mutation score has decreased by ${DIFF#-} percentage points"
+            echo "FAILURE: Mutation score has decreased by ${DIFF#-} percentage points"
             echo "::error::Mutation score regression detected: $CURRENT% < $BASELINE%"
             exit 1
           elif (( $(awk "BEGIN {print ($CURRENT > $BASELINE)}") )); then
-            echo "✅ SUCCESS: Mutation score has improved by $DIFF percentage points"
+            echo "SUCCESS: Mutation score has improved by $DIFF percentage points"
           else
-            echo "✅ SUCCESS: Mutation score maintained at $BASELINE%"
+            echo "SUCCESS: Mutation score maintained at $BASELINE%"
           fi
       - name: Update baseline if on main branch
         if: github.ref == 'refs/heads/main' && steps.current_score.outputs.current_score != ''
@@ -196,7 +195,7 @@ jobs:
             const current = '${{ steps.current_score.outputs.current_score }}';
             const mutationsXml = '${{ steps.current_score.outputs.mutations_xml }}';
             
-            let comment = `## 🧬 Mutation Testing Results\n\n`;
+            let comment = `## Mutation Testing Results\n\n`;
             comment += `| Metric | Value |\n`;
             comment += `|--------|-------|\n`;
             comment += `| Baseline Score | ${baseline}% |\n`;
@@ -207,15 +206,15 @@ jobs:
             
             if (currentNum < baselineNum) {
               const decrease = (baselineNum - currentNum).toFixed(2);
-              comment += `| Status | ❌ **Decreased by ${decrease}%** |\n\n`;
-              comment += `⚠️  **Mutation score regression detected!** Please review your changes to ensure test quality is maintained.\n\n`;
+              comment += `| Status | **Decreased by ${decrease}%** |\n\n`;
+              comment += `Mutation score regression detected. Please review your changes to ensure test quality is maintained.\n\n`;
             } else if (currentNum > baselineNum) {
               const increase = (currentNum - baselineNum).toFixed(2);
-              comment += `| Status | 🎉 **Improved by ${increase}%** |\n\n`;
-              comment += `✅ Great job! Your changes have improved the mutation test coverage.\n\n`;
+              comment += `| Status | **Improved by ${increase}%** |\n\n`;
+              comment += `Great job! Your changes have improved the mutation test coverage.\n\n`;
             } else {
-              comment += `| Status | ✅ **Maintained** |\n\n`;
-              comment += `✅ Mutation score maintained at the current level.\n\n`;
+              comment += `| Status | **Maintained** |\n\n`;
+              comment += `Mutation score maintained at the current level.\n\n`;
             }
             
             comment += `### Details\n`;
