@@ -70,8 +70,8 @@ jobs:
       - name: Run PITest mutation testing
         run: |
           echo "🧬 Running mutation testing on target classes..."
-          # Compiler tout d'abord pour résoudre les dépendances inter-modules
-          mvn -B clean compile -DskipTests
+          # Installer tous les modules dans le repository local pour résoudre les dépendances
+          mvn -B clean install -DskipTests
           # Puis lancer PITest sur tout le projet (il se concentrera sur nos 2 classes)
           mvn -B org.pitest:pitest-maven:mutationCoverage
       - name: Extract current mutation score
