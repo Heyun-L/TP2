@@ -24,7 +24,7 @@ KILLED_MUTATIONS=$(grep -c 'status="KILLED"' "$MUTATIONS_XML")
 
 # Calculer le score de mutation (pourcentage)
 if [ "$TOTAL_MUTATIONS" -gt 0 ]; then
-    MUTATION_SCORE=$(echo "scale=2; $KILLED_MUTATIONS * 100 / $TOTAL_MUTATIONS" | bc -l)
+    MUTATION_SCORE=$(awk "BEGIN {printf \"%.2f\", $KILLED_MUTATIONS * 100 / $TOTAL_MUTATIONS}")
 else
     MUTATION_SCORE=0
 fi
