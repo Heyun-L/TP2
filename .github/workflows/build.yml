@@ -73,7 +73,9 @@ jobs:
           # Installer tous les modules dans le repository local pour résoudre les dépendances
           mvn -B clean install -DskipTests
           # Puis lancer PITest sur tout le projet (il se concentrera sur nos 2 classes)
-          mvn -B org.pitest:pitest-maven:mutationCoverage
+          echo "=== Starting PITest ==="
+          mvn -B org.pitest:pitest-maven:mutationCoverage -X
+          echo "=== PITest completed with exit code: $? ==="
       - name: Debug PITest output structure
         run: |
           echo "=== Checking PITest report generation ==="
@@ -108,6 +110,9 @@ jobs:
               echo "::error::Mutations XML file not found at: $MUTATIONS_XML"
               echo "Contents of report directory:"
               ls -la "core/target/pit-reports/$REPORT_DIR/" || echo "Directory does not exist"
+              echo "All files in pit-reports:"
+              find core/target/pit-reports/ -type f || echo "No files found"
+              echo "PITest may have failed to generate XML - checking PITest logs..."
               exit 1
             fi
           else
