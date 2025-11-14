@@ -74,17 +74,44 @@ jobs:
           mvn -B clean install -DskipTests
           # Puis lancer PITest sur tout le projet (il se concentrera sur nos 2 classes)
           mvn -B org.pitest:pitest-maven:mutationCoverage
+      - name: Debug PITest output structure
+        run: |
+          echo "=== Checking PITest report generation ==="
+          echo "Checking if core/target exists:"
+          ls -la core/target/ || echo "❌ No core/target directory"
+          
+          echo "Checking if pit-reports exists:"
+          ls -la core/target/pit-reports/ || echo "❌ No pit-reports directory"
+          
+          echo "Looking for any XML files in target:"
+          find core/target -name "*.xml" -type f || echo "❌ No XML files found"
+          
+          echo "Looking for any pit-related files:"
+          find . -path "*/pit-reports*" -type f || echo "❌ No pit-report files found"
+          
       - name: Extract current mutation score
         id: current_score
         run: |
-          MUTATIONS_XML="core/target/pit-reports/$(ls core/target/pit-reports/ | head -1)/mutations.xml"
-          if [ -f "$MUTATIONS_XML" ]; then
-            CURRENT_SCORE=$(.github/scripts/extract_mutation_score.sh "$MUTATIONS_XML")
-            echo "current_score=$CURRENT_SCORE" >> $GITHUB_OUTPUT
-            echo "mutations_xml=$MUTATIONS_XML" >> $GITHUB_OUTPUT
-            echo "Current mutation score: $CURRENT_SCORE%"
+          echo "=== Extracting mutation score ==="
+          if [ -d "core/target/pit-reports" ]; then
+            REPORT_DIR=$(ls core/target/pit-reports/ | head -1)
+            echo "Found report directory: $REPORT_DIR"
+            MUTATIONS_XML="core/target/pit-reports/$REPORT_DIR/mutations.xml"
+            echo "Looking for: $MUTATIONS_XML"
+            
+            if [ -f "$MUTATIONS_XML" ]; then
+              CURRENT_SCORE=$(.github/scripts/extract_mutation_score.sh "$MUTATIONS_XML")
+              echo "current_score=$CURRENT_SCORE" >> $GITHUB_OUTPUT
+              echo "mutations_xml=$MUTATIONS_XML" >> $GITHUB_OUTPUT
+              echo "Current mutation score: $CURRENT_SCORE%"
+            else
+              echo "::error::Mutations XML file not found at: $MUTATIONS_XML"
+              echo "Contents of report directory:"
+              ls -la "core/target/pit-reports/$REPORT_DIR/" || echo "Directory does not exist"
+              exit 1
+            fi
           else
-            echo "::error::Mutations XML file not found"
+            echo "::error::No pit-reports directory found"
             exit 1
           fi
       - name: Get baseline mutation score from main branch
