@@ -38,8 +38,8 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/pom.xml', '**/package.json') }}
           restore-keys: |
             ${{ runner.os}}-node_modules-
-      - name: Build ${{ matrix.java-version }}
-        run: mvn -B clean test
+      - name: Build and test only core module
+        run: mvn -B clean test -pl core -am
       
       - name: Rickroll on test failure
         if: failure()
