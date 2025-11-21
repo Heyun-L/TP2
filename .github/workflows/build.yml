@@ -180,13 +180,8 @@ jobs:
       - name: Update baseline if on main branch
         if: github.ref == 'refs/heads/main' && steps.current_score.outputs.current_score != ''
         run: |
-          echo "${{ steps.current_score.outputs.current_score }}" > .github/mutation-baseline.txt
-          echo "Updated baseline score to: ${{ steps.current_score.outputs.current_score }}%"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/mutation-baseline.txt
-          git commit -m "Update mutation baseline to ${{ steps.current_score.outputs.current_score }}%"
-          git push
+          echo "Current mutation score: ${{ steps.current_score.outputs.current_score }}%"
+          echo "To update the baseline, manually edit .github/mutation-baseline.txt and commit the change"
       - name: Upload mutation testing reports
         uses: actions/upload-artifact@v4
         if: always()
