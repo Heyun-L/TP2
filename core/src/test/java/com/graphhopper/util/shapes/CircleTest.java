@@ -96,9 +96,8 @@ public class CircleTest {
     public void testContains() {
         Circle c = new Circle(10, 10, 120000);
         assertTrue(c.contains(new BBox(9, 11, 10, 10.1)));
-        // Commented to reduce mutation score
-        // assertFalse(c.contains(new BBox(9, 11, 8, 9)));
-        // assertFalse(c.contains(new BBox(9, 12, 10, 10.1)));
+        assertFalse(c.contains(new BBox(9, 11, 8, 9)));
+        assertFalse(c.contains(new BBox(9, 12, 10, 10.1)));
     }
 
     @Test
@@ -106,7 +105,6 @@ public class CircleTest {
         Circle c = new Circle(10, 10, 120000);
         assertTrue(c.contains(new Circle(9.9, 10.2, 90000)));
         assertFalse(c.contains(new Circle(10, 10.4, 90000)));
-        
     }
 
 
